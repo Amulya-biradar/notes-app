@@ -5,6 +5,7 @@ import com.notesapp.notes_backend.dto.response.NoteResponseDto;
 import com.notesapp.notes_backend.service.NoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ public class NoteController {
     private final NoteService noteService;
 
     @PostMapping
-    public NoteResponseDto createNote(@RequestBody NoteRequestDto dto) {
+    public NoteResponseDto createNote(@Valid @RequestBody NoteRequestDto dto) {
 
         return noteService.createNote(dto);
     }
@@ -36,7 +37,7 @@ public class NoteController {
     @PutMapping("/{id}")
     public NoteResponseDto updateNote(
             @PathVariable Long id,
-            @RequestBody NoteRequestDto dto) {
+            @Valid @RequestBody NoteRequestDto dto) {
 
         return noteService.updateNote(id, dto);
     }
