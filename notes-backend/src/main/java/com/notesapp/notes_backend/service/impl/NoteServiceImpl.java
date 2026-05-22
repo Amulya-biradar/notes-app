@@ -8,6 +8,7 @@ import com.notesapp.notes_backend.repository.NoteRepository;
 import com.notesapp.notes_backend.service.NoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.notesapp.notes_backend.exception.ResourceNotFoundException;
 
 import java.util.List;
 
@@ -40,7 +41,7 @@ public class NoteServiceImpl implements NoteService {
     public NoteResponseDto getNoteById(Long id) {
 
         Note note = noteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Note not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Note not found with id: " + id));
 
         return NoteMapper.toResponseDto(note);
     }
@@ -49,7 +50,7 @@ public class NoteServiceImpl implements NoteService {
     public NoteResponseDto updateNote(Long id, NoteRequestDto dto) {
 
         Note existingNote = noteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Note not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Note not found with id: " + id));
 
         existingNote.setTitle(dto.getTitle());
         existingNote.setContent(dto.getContent());
@@ -65,7 +66,7 @@ public class NoteServiceImpl implements NoteService {
     public void deleteNote(Long id) {
 
         Note existingNote = noteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Note not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Note not found with id: " + id));
 
         noteRepository.deleteById(existingNote.getId());
     }
