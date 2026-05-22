@@ -44,4 +44,20 @@ public class NoteServiceImpl implements NoteService {
 
         return NoteMapper.toResponseDto(note);
     }
+
+    @Override
+    public NoteResponseDto updateNote(Long id, NoteRequestDto dto) {
+
+        Note existingNote = noteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Note not found"));
+
+        existingNote.setTitle(dto.getTitle());
+        existingNote.setContent(dto.getContent());
+        existingNote.setPinned(dto.getPinned());
+        existingNote.setUpdatedAt(java.time.LocalDateTime.now());
+
+        Note updatedNote = noteRepository.save(existingNote);
+
+        return NoteMapper.toResponseDto(updatedNote);
+    }
 }

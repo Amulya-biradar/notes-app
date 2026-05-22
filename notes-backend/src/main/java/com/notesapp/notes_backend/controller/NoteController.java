@@ -32,4 +32,12 @@ public class NoteController {
 
         return noteService.getNoteById(id);
     }
+
+    @PutMapping("/{id}")
+    public NoteResponseDto updateNote(
+            @PathVariable Long id,
+            @RequestBody NoteRequestDto dto) {
+
+        return noteService.updateNote(id, dto);
+    }
 }

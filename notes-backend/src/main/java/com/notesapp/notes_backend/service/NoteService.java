@@ -12,4 +12,6 @@ public interface NoteService {
     List<NoteResponseDto> getAllNotes();
 
     NoteResponseDto getNoteById(Long id);
+
+    NoteResponseDto updateNote(Long id, NoteRequestDto dto);
 }
