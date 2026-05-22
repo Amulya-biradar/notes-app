@@ -36,4 +36,12 @@ public class NoteServiceImpl implements NoteService {
                 .map(NoteMapper::toResponseDto)
                 .toList();
     }
+    @Override
+    public NoteResponseDto getNoteById(Long id) {
+
+        Note note = noteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Note not found"));
+
+        return NoteMapper.toResponseDto(note);
+    }
 }
