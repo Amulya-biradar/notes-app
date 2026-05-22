@@ -40,4 +40,12 @@ public class NoteController {
 
         return noteService.updateNote(id, dto);
     }
+
+    @DeleteMapping("/{id}")
+    public String deleteNote(@PathVariable Long id) {
+
+        noteService.deleteNote(id);
+
+        return "Note deleted successfully";
+    }
 }
