@@ -5,6 +5,8 @@ import com.notesapp.notes_backend.repository.JpaNoteRepository;
 import com.notesapp.notes_backend.repository.NoteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +28,11 @@ public class NoteRepositoryImpl implements NoteRepository {
     }
 
     @Override
+    public Page<Note> findAll(Pageable pageable) {
+        return jpaNoteRepository.findAll(pageable);
+    }
+
+    @Override
     public Optional<Note> findById(Long id) {
         return jpaNoteRepository.findById(id);
     }
@@ -33,5 +40,21 @@ public class NoteRepositoryImpl implements NoteRepository {
     @Override
     public void deleteById(Long id) {
         jpaNoteRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Note> searchNotes(String keyword) {
+
+        return jpaNoteRepository
+                .findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
+                        keyword,
+                        keyword
+                );
+    }
+
+    @Override
+    public List<Note> findPinnedNotes() {
+
+        return jpaNoteRepository.findByPinnedTrue();
     }
 }

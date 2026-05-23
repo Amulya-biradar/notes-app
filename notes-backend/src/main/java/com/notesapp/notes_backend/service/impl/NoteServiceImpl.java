@@ -9,6 +9,11 @@ import com.notesapp.notes_backend.service.NoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.notesapp.notes_backend.exception.ResourceNotFoundException;
+import com.notesapp.notes_backend.dto.response.PaginatedResponseDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -29,14 +34,49 @@ public class NoteServiceImpl implements NoteService {
     }
 
     @Override
-    public List<NoteResponseDto> getAllNotes() {
+    public PaginatedResponseDto getAllNotes(
+            int pageNo,
+            int pageSize,
+            String sortBy,
+            String sortDir
+    ) {
 
-        List<Note> notes = noteRepository.findAll();
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        Page<Note> notesPage = noteRepository.findAll(pageable);
+
+        List<Note> notes = notesPage.getContent();
+
+        List<NoteResponseDto> content = notes.stream()
+                .map(NoteMapper::toResponseDto)
+                .toList();
+
+        PaginatedResponseDto response = new PaginatedResponseDto();
+
+        response.setContent(content);
+        response.setPageNo(notesPage.getNumber());
+        response.setPageSize(notesPage.getSize());
+        response.setTotalElements(notesPage.getTotalElements());
+        response.setTotalPages(notesPage.getTotalPages());
+        response.setLast(notesPage.isLast());
+
+        return response;
+    }
+
+    @Override
+    public List<NoteResponseDto> searchNotes(String keyword) {
+
+        List<Note> notes = noteRepository.searchNotes(keyword);
 
         return notes.stream()
                 .map(NoteMapper::toResponseDto)
                 .toList();
     }
+
     @Override
     public NoteResponseDto getNoteById(Long id) {
 
@@ -69,5 +109,15 @@ public class NoteServiceImpl implements NoteService {
                 .orElseThrow(() -> new ResourceNotFoundException("Note not found with id: " + id));
 
         noteRepository.deleteById(existingNote.getId());
+    }
+
+    @Override
+    public List<NoteResponseDto> getPinnedNotes() {
+
+        List<Note> notes = noteRepository.findPinnedNotes();
+
+        return notes.stream()
+                .map(NoteMapper::toResponseDto)
+                .toList();
     }
 }

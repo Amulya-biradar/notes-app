@@ -6,6 +6,7 @@ import com.notesapp.notes_backend.service.NoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+import com.notesapp.notes_backend.dto.response.PaginatedResponseDto;
 
 import java.util.List;
 
@@ -23,9 +24,47 @@ public class NoteController {
     }
 
     @GetMapping
-    public List<NoteResponseDto> getAllNotes() {
+    public PaginatedResponseDto getAllNotes(
 
-        return noteService.getAllNotes();
+            @RequestParam(
+                    value = "pageNo",
+                    defaultValue = "0",
+                    required = false
+            ) int pageNo,
+
+            @RequestParam(
+                    value = "pageSize",
+                    defaultValue = "5",
+                    required = false
+            ) int pageSize,
+
+            @RequestParam(
+                    value = "sortBy",
+                    defaultValue = "id",
+                    required = false
+            ) String sortBy,
+
+            @RequestParam(
+                    value = "sortDir",
+                    defaultValue = "asc",
+                    required = false
+            ) String sortDir
+    ) {
+
+        return noteService.getAllNotes(
+                pageNo,
+                pageSize,
+                sortBy,
+                sortDir
+        );
+    }
+
+    @GetMapping("/search")
+    public List<NoteResponseDto> searchNotes(
+            @RequestParam String keyword
+    ) {
+
+        return noteService.searchNotes(keyword);
     }
 
     @GetMapping("/{id}")
@@ -48,5 +87,11 @@ public class NoteController {
         noteService.deleteNote(id);
 
         return "Note deleted successfully";
+    }
+
+    @GetMapping("/pinned")
+    public List<NoteResponseDto> getPinnedNotes() {
+
+        return noteService.getPinnedNotes();
     }
 }
