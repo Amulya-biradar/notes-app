@@ -3,6 +3,7 @@ package com.notesapp.notes_backend.controller;
 import com.notesapp.notes_backend.dto.request.NoteRequestDto;
 import com.notesapp.notes_backend.dto.response.NoteResponseDto;
 import com.notesapp.notes_backend.service.NoteService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -13,6 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/notes")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class NoteController {
 
     private final NoteService noteService;
