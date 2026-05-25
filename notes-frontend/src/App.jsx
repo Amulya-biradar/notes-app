@@ -1,9 +1,7 @@
+import AppRoutes from "./routes/AppRoutes";
+
 function App() {
-  return (
-    <div className="text-3xl font-bold p-10">
-      Notes App Frontend
-    </div>
-  );
+  return <AppRoutes />;
 }
 
 export default App;
