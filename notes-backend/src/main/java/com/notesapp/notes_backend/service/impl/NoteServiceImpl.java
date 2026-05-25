@@ -14,6 +14,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import com.notesapp.notes_backend.entity.User;
+import com.notesapp.notes_backend.repository.UserRepository;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 
@@ -23,10 +28,16 @@ public class NoteServiceImpl implements NoteService {
 
     private final NoteRepository noteRepository;
 
+    private final UserRepository userRepository;
+
     @Override
     public NoteResponseDto createNote(NoteRequestDto dto) {
 
+        User user = getLoggedInUser();
+
         Note note = NoteMapper.toEntity(dto);
+
+        note.setUser(user);
 
         Note savedNote = noteRepository.save(note);
 
@@ -47,7 +58,9 @@ public class NoteServiceImpl implements NoteService {
 
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
-        Page<Note> notesPage = noteRepository.findAll(pageable);
+        User user = getLoggedInUser();
+
+        Page<Note> notesPage = noteRepository.findByUser(user, pageable);
 
         List<Note> notes = notesPage.getContent();
 
@@ -70,7 +83,9 @@ public class NoteServiceImpl implements NoteService {
     @Override
     public List<NoteResponseDto> searchNotes(String keyword) {
 
-        List<Note> notes = noteRepository.searchNotes(keyword);
+        User user = getLoggedInUser();
+
+        List<Note> notes = noteRepository.searchNotesByUser(user, keyword);
 
         return notes.stream()
                 .map(NoteMapper::toResponseDto)
@@ -80,8 +95,13 @@ public class NoteServiceImpl implements NoteService {
     @Override
     public NoteResponseDto getNoteById(Long id) {
 
-        Note note = noteRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Note not found with id: " + id));
+        User user = getLoggedInUser();
+
+        Note note = noteRepository.findByIdAndUser(id, user)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Note not found with id: " + id
+                        ));
 
         return NoteMapper.toResponseDto(note);
     }
@@ -89,8 +109,13 @@ public class NoteServiceImpl implements NoteService {
     @Override
     public NoteResponseDto updateNote(Long id, NoteRequestDto dto) {
 
-        Note existingNote = noteRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Note not found with id: " + id));
+        User user = getLoggedInUser();
+
+        Note existingNote = noteRepository.findByIdAndUser(id, user)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Note not found with id: " + id
+                        ));
 
         existingNote.setTitle(dto.getTitle());
         existingNote.setContent(dto.getContent());
@@ -105,8 +130,13 @@ public class NoteServiceImpl implements NoteService {
     @Override
     public void deleteNote(Long id) {
 
-        Note existingNote = noteRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Note not found with id: " + id));
+        User user = getLoggedInUser();
+
+        Note existingNote = noteRepository.findByIdAndUser(id, user)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Note not found with id: " + id
+                        ));
 
         noteRepository.deleteById(existingNote.getId());
     }
@@ -114,10 +144,24 @@ public class NoteServiceImpl implements NoteService {
     @Override
     public List<NoteResponseDto> getPinnedNotes() {
 
-        List<Note> notes = noteRepository.findPinnedNotes();
+        User user = getLoggedInUser();
+
+        List<Note> notes = noteRepository.findPinnedNotesByUser(user);
 
         return notes.stream()
                 .map(NoteMapper::toResponseDto)
                 .toList();
+    }
+
+    private User getLoggedInUser() {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        String email = authentication.getName();
+
+        return userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
     }
 }

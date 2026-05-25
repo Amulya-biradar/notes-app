@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import com.notesapp.notes_backend.entity.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -56,5 +57,32 @@ public class NoteRepositoryImpl implements NoteRepository {
     public List<Note> findPinnedNotes() {
 
         return jpaNoteRepository.findByPinnedTrue();
+    }
+
+    @Override
+    public Page<Note> findByUser(User user, Pageable pageable) {
+        return jpaNoteRepository.findByUser(user, pageable);
+    }
+
+    @Override
+    public Optional<Note> findByIdAndUser(Long id, User user) {
+        return jpaNoteRepository.findByIdAndUser(id, user);
+    }
+
+    @Override
+    public List<Note> searchNotesByUser(User user, String keyword) {
+
+        return jpaNoteRepository
+                .findByUserAndTitleContainingIgnoreCaseOrUserAndContentContainingIgnoreCase(
+                        user,
+                        keyword,
+                        user,
+                        keyword
+                );
+    }
+
+    @Override
+    public List<Note> findPinnedNotesByUser(User user) {
+        return jpaNoteRepository.findByUserAndPinnedTrue(user);
     }
 }
