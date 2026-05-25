@@ -1,0 +1,13 @@
+# Backend
+notes_backend/target/
+
+# Frontend
+notes-frontend/node_modules/
+notes-frontend/dist/
+
+# IntelliJ
+.idea/
+*.iml
+
+# Environment files
+.env
