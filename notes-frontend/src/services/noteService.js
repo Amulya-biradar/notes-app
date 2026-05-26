@@ -37,3 +37,12 @@ export const updateNote = async (id, noteData) => {
 
   return response.data;
 };
+
+export const searchNotes = async (keyword) => {
+
+  const response = await axiosInstance.get(
+    `/notes/search?keyword=${keyword}`
+  );
+
+  return response.data;
+};

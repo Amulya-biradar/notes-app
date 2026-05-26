@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getAllNotes,createNote,deleteNote,updateNote } from "../services/noteService";
+import { getAllNotes,createNote,deleteNote,updateNote,searchNotes } from "../services/noteService";
 
 function DashboardPage() {
 
@@ -12,6 +12,8 @@ function DashboardPage() {
   pinned: false,
 });
   const [editingNoteId, setEditingNoteId] = useState(null);
+  const [searchKeyword, setSearchKeyword] =
+  useState("");
 
   const handleLogout = () => {
 
@@ -28,7 +30,34 @@ function DashboardPage() {
 
     console.log(response);
 
-    setNotes(response.content);
+    const sortedNotes = response.content.sort(
+  (a, b) => b.pinned - a.pinned
+);
+
+setNotes(sortedNotes);
+
+  } catch (error) {
+
+    console.error(error);
+  }
+};
+
+    const handleSearch = async (keyword) => {
+
+  setSearchKeyword(keyword);
+
+  try {
+
+    if (keyword.trim() === "") {
+
+      fetchNotes();
+
+      return;
+    }
+
+    const response = await searchNotes(keyword);
+
+    setNotes(response);
 
   } catch (error) {
 
@@ -102,6 +131,24 @@ const handleDeleteNote = async (id) => {
   });
 };
 
+const handleTogglePin = async (note) => {
+
+  try {
+
+    await updateNote(note.id, {
+      title: note.title,
+      content: note.content,
+      pinned: !note.pinned,
+    });
+
+    fetchNotes();
+
+  } catch (error) {
+
+    console.error(error);
+  }
+};
+
     useEffect(() => {
     fetchNotes();
     }, []);
@@ -123,6 +170,20 @@ const handleDeleteNote = async (id) => {
         </button>
 
       </div>
+
+      <div className="mb-6">
+
+  <input
+    type="text"
+    placeholder="Search notes..."
+    value={searchKeyword}
+    onChange={(e) =>
+      handleSearch(e.target.value)
+    }
+    className="w-full border border-gray-300 rounded-lg p-3"
+  />
+
+</div>
 
     <div className="bg-white p-6 rounded-xl shadow-md mb-6">
 
@@ -170,13 +231,27 @@ const handleDeleteNote = async (id) => {
 
     <div
       key={note.id}
-      className="bg-white p-5 rounded-xl shadow-md"
+      className={`p-5 rounded-xl shadow-md ${
+  note.pinned
+    ? "bg-yellow-100"
+    : "bg-white"
+}`}
     >
 
-      <h2 className="text-xl font-bold mb-2">
-        {note.title}
-      </h2>
+      <div className="flex justify-between items-center mb-2">
 
+  <h2 className="text-xl font-bold">
+    {note.title}
+  </h2>
+
+  <button
+    onClick={() => handleTogglePin(note)}
+    className="text-xl"
+  >
+    {note.pinned ? "📌" : "📍"}
+  </button>
+
+</div>
       <p className="text-gray-700">
         {note.content}
       </p>
