@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { registerUser } from "../services/authService";
+import { useNavigate } from "react-router-dom";
 
 function RegisterPage() {
-
+    const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -27,6 +28,7 @@ function RegisterPage() {
     console.log(response);
 
     alert("Registration successful!");
+    navigate("/");
 
     } catch (error) {
 

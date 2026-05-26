@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { loginUser } from "../services/authService";
+import { useNavigate } from "react-router-dom";
 
 function LoginPage() {
+    const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -15,10 +18,29 @@ function LoginPage() {
     });
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    console.log(formData);
+    try {
+
+  const response = await loginUser(formData);
+
+  console.log(response);
+
+  localStorage.setItem(
+    "token",
+    response.token
+  );
+
+  alert("Login successful!");
+  navigate("/dashboard");
+
+} catch (error) {
+
+  console.error(error);
+
+  alert("Invalid email or password!");
+}
   };
 
   return (
