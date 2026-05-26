@@ -1,159 +1,209 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { getAllNotes,createNote,deleteNote,updateNote,searchNotes } from "../services/noteService";
+import { useEffect, useState, useRef } from "react";
+import {
+  getAllNotes,
+  createNote,
+  deleteNote,
+  updateNote,
+  searchNotes
+} from "../services/noteService";
+import toast from "react-hot-toast";
 
 function DashboardPage() {
 
   const navigate = useNavigate();
+
   const [notes, setNotes] = useState([]);
+
   const [formData, setFormData] = useState({
-  title: "",
-  content: "",
-  pinned: false,
-});
+    title: "",
+    content: "",
+    pinned: false,
+  });
+
   const [editingNoteId, setEditingNoteId] = useState(null);
+
   const [searchKeyword, setSearchKeyword] =
-  useState("");
+    useState("");
+
+  const formRef = useRef(null);
 
   const handleLogout = () => {
 
     localStorage.removeItem("token");
+    toast.success("Logged out successfully");
 
     navigate("/");
   };
 
   const fetchNotes = async () => {
 
-  try {
+    try {
 
-    const response = await getAllNotes();
+      const response = await getAllNotes();
 
-    console.log(response);
+      console.log(response);
 
-    const sortedNotes = response.content.sort(
-  (a, b) => b.pinned - a.pinned
-);
+      const sortedNotes = response.content.sort(
+        (a, b) => b.pinned - a.pinned
+      );
 
-setNotes(sortedNotes);
+      setNotes(sortedNotes);
 
-  } catch (error) {
+    } catch (error) {
 
-    console.error(error);
-  }
-};
+      console.error(error);
 
-    const handleSearch = async (keyword) => {
+      toast.error("Something went wrong");
+    }
+  };
 
-  setSearchKeyword(keyword);
+  const handleSearch = async (keyword) => {
 
-  try {
+    setSearchKeyword(keyword);
 
-    if (keyword.trim() === "") {
+    try {
+
+      if (keyword.trim() === "") {
+
+        fetchNotes();
+
+        return;
+      }
+
+      const response = await searchNotes(keyword);
+
+      setNotes(response);
+
+    } catch (error) {
+
+      console.error(error);
+
+      toast.error("Something went wrong");
+    }
+  };
+
+  const handleChange = (event) => {
+
+    setFormData({
+      ...formData,
+      [event.target.name]: event.target.value,
+    });
+  };
+
+  const handleCreateNote = async (event) => {
+
+    event.preventDefault();
+
+    try {
+
+      if (editingNoteId) {
+
+        await updateNote(
+          editingNoteId,
+          formData
+        );
+
+        toast.success(
+          "Note updated successfully"
+        );
+
+      } else {
+
+        await createNote(formData);
+
+        toast.success(
+          "Note created successfully"
+        );
+      }
+
+      setFormData({
+        title: "",
+        content: "",
+        pinned: false,
+      });
+
+      setEditingNoteId(null);
 
       fetchNotes();
 
-      return;
+    } catch (error) {
+
+      console.error(error);
+
+      toast.error("Something went wrong");
     }
+  };
 
-    const response = await searchNotes(keyword);
+  const handleDeleteNote = async (id) => {
 
-    setNotes(response);
+    try {
 
-  } catch (error) {
+      await deleteNote(id);
 
-    console.error(error);
-  }
-};
+      toast.success(
+        "Note deleted successfully"
+      );
 
-    const handleChange = (event) => {
+      fetchNotes();
 
-    setFormData({
-    ...formData,
-    [event.target.name]: event.target.value,
-    });
-    };
+    } catch (error) {
 
-    const handleCreateNote = async (event) => {
+      console.error(error);
 
-  event.preventDefault();
+      toast.error("Something went wrong");
+    }
+  };
 
-  try {
+  const handleEditNote = (note) => {
 
-    if (editingNoteId) {
-
-  await updateNote(
-    editingNoteId,
-    formData
-  );
-
-} else {
-
-  await createNote(formData);
-}
-
-    setFormData({
-      title: "",
-      content: "",
-      pinned: false,
+    formRef.current?.scrollIntoView({
+      behavior: "smooth",
     });
 
-    setEditingNoteId(null);
+    setEditingNoteId(note.id);
 
-    fetchNotes();
-
-  } catch (error) {
-
-    console.error(error);
-  }
-};
-
-const handleDeleteNote = async (id) => {
-
-  try {
-
-    await deleteNote(id);
-
-    fetchNotes();
-
-  } catch (error) {
-
-    console.error(error);
-  }
-};
-    const handleEditNote = (note) => {
-
-  setEditingNoteId(note.id);
-
-  setFormData({
-    title: note.title,
-    content: note.content,
-    pinned: note.pinned,
-  });
-};
-
-const handleTogglePin = async (note) => {
-
-  try {
-
-    await updateNote(note.id, {
+    setFormData({
       title: note.title,
       content: note.content,
-      pinned: !note.pinned,
+      pinned: note.pinned,
     });
+  };
+
+  const handleTogglePin = async (note) => {
+
+    try {
+
+      await updateNote(note.id, {
+        title: note.title,
+        content: note.content,
+        pinned: !note.pinned,
+      });
+
+      toast.success(
+        note.pinned
+          ? "Note unpinned"
+          : "Note pinned"
+      );
+
+      fetchNotes();
+
+    } catch (error) {
+
+      console.error(error);
+
+      toast.error("Something went wrong");
+    }
+  };
+
+  useEffect(() => {
 
     fetchNotes();
 
-  } catch (error) {
-
-    console.error(error);
-  }
-};
-
-    useEffect(() => {
-    fetchNotes();
-    }, []);
+  }, []);
 
   return (
+
     <div className="min-h-screen bg-gray-100 p-6">
 
       <div className="flex justify-between items-center mb-6">
@@ -173,107 +223,136 @@ const handleTogglePin = async (note) => {
 
       <div className="mb-6">
 
-  <input
-    type="text"
-    placeholder="Search notes..."
-    value={searchKeyword}
-    onChange={(e) =>
-      handleSearch(e.target.value)
-    }
-    className="w-full border border-gray-300 rounded-lg p-3"
-  />
+        <input
+          type="text"
+          placeholder="Search notes..."
+          value={searchKeyword}
+          onChange={(e) =>
+            handleSearch(e.target.value)
+          }
+          className="w-full border border-gray-300 rounded-lg p-3"
+        />
 
-</div>
+      </div>
 
-    <div className="bg-white p-6 rounded-xl shadow-md mb-6">
+      <div
+        ref={formRef}
+        className="bg-white p-6 rounded-xl shadow-md mb-6"
+      >
 
-  <h2 className="text-2xl font-bold mb-4">
-    {editingNoteId ? "Update Note" : "Create Note"}
-  </h2>
+        <h2 className="text-2xl font-bold mb-4">
 
-  <form
-    onSubmit={handleCreateNote}
-    className="space-y-4"
-  >
+          {editingNoteId
+            ? "Update Note"
+            : "Create Note"}
 
-    <input
-      type="text"
-      name="title"
-      placeholder="Enter title"
-      value={formData.title}
-      onChange={handleChange}
-      className="w-full border border-gray-300 rounded-lg p-3"
-    />
+        </h2>
 
-    <textarea
-      name="content"
-      placeholder="Enter content"
-      value={formData.content}
-      onChange={handleChange}
-      className="w-full border border-gray-300 rounded-lg p-3"
-      rows="4"
-    />
+        <form
+          onSubmit={handleCreateNote}
+          className="space-y-4"
+        >
 
-    <button
-      type="submit"
-      className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
-    >
-      Create Note
-    </button>
+          <input
+            type="text"
+            name="title"
+            placeholder="Enter title"
+            value={formData.title}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-lg p-3"
+          />
 
-  </form>
+          <textarea
+            name="content"
+            placeholder="Enter content"
+            value={formData.content}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-lg p-3"
+            rows="4"
+          />
 
-</div>
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            {editingNoteId
+              ? "Update Note"
+              : "Create Note"}
+          </button>
 
-      <div className="grid gap-4">
+        </form>
 
-  {notes.map((note) => (
+      </div>
 
-    <div
-      key={note.id}
-      className={`p-5 rounded-xl shadow-md ${
-  note.pinned
-    ? "bg-yellow-100"
-    : "bg-white"
-}`}
-    >
+      {notes.length === 0 ? (
 
-      <div className="flex justify-between items-center mb-2">
+        <div className="bg-white p-10 rounded-xl shadow-md text-center">
 
-  <h2 className="text-xl font-bold">
-    {note.title}
-  </h2>
+          <h2 className="text-2xl font-bold mb-3">
+            No Notes Yet 📝
+          </h2>
 
-  <button
-    onClick={() => handleTogglePin(note)}
-    className="text-xl"
-  >
-    {note.pinned ? "📌" : "📍"}
-  </button>
+          <p className="text-gray-600">
+            Create your first note to get started.
+          </p>
 
-</div>
-      <p className="text-gray-700">
-        {note.content}
-      </p>
+        </div>
 
-      <button
-  onClick={() => handleEditNote(note)}
-  className="mt-4 mr-3 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
->
-  Edit
-</button>
+      ) : (
 
-      <button
-  onClick={() => handleDeleteNote(note.id)}
-  className="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
->
-  Delete
-</button>
+        <div className="grid gap-4">
 
-    </div>
-    ))}
+          {notes.map((note) => (
 
-    </div>
+            <div
+              key={note.id}
+              className={`p-5 rounded-xl shadow-md ${
+                note.pinned
+                  ? "bg-yellow-100"
+                  : "bg-white"
+              }`}
+            >
+
+              <div className="flex justify-between items-center mb-2">
+
+                <h2 className="text-xl font-bold">
+                  {note.title}
+                </h2>
+
+                <button
+                  onClick={() => handleTogglePin(note)}
+                  className="text-xl"
+                >
+                  {note.pinned ? "📌" : "📍"}
+                </button>
+
+              </div>
+
+              <p className="text-gray-700">
+                {note.content}
+              </p>
+
+              <button
+                onClick={() => handleEditNote(note)}
+                className="mt-4 mr-3 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
+              >
+                Edit
+              </button>
+
+              <button
+                onClick={() => handleDeleteNote(note.id)}
+                className="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+              >
+                Delete
+              </button>
+
+            </div>
+
+          ))}
+
+        </div>
+
+      )}
 
     </div>
   );

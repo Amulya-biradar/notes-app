@@ -12,6 +12,7 @@ import com.notesapp.notes_backend.dto.request.LoginRequestDto;
 import com.notesapp.notes_backend.dto.response.LoginResponseDto;
 import com.notesapp.notes_backend.service.JwtService;
 import com.notesapp.notes_backend.exception.ResourceNotFoundException;
+import com.notesapp.notes_backend.exception.UserAlreadyExistsException;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,15 @@ public class AuthServiceImpl
     public AuthResponseDto register(
             RegisterRequestDto request
     ) {
+
+        if (userRepository
+                .findByEmail(request.getEmail())
+                .isPresent()) {
+
+            throw new UserAlreadyExistsException(
+                    "Email already registered"
+            );
+        }
 
         User user = new User();
 
@@ -47,7 +57,6 @@ public class AuthServiceImpl
                 "User registered successfully"
         );
     }
-
     @Override
     public LoginResponseDto login(
             LoginRequestDto request

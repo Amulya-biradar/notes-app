@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { registerUser } from "../services/authService";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 function RegisterPage() {
     const navigate = useNavigate();
@@ -27,14 +28,17 @@ function RegisterPage() {
 
     console.log(response);
 
-    alert("Registration successful!");
+    toast.success("Registration successful");
     navigate("/");
 
     } catch (error) {
 
     console.error(error);
 
-    alert("Registration failed!");
+    toast.error(
+  error.response?.data?.message ||
+  "Registration failed"
+);
     }   
   };
 

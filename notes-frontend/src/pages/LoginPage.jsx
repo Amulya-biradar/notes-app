@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { loginUser } from "../services/authService";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 function LoginPage() {
     const navigate = useNavigate();
@@ -32,14 +33,14 @@ function LoginPage() {
     response.token
   );
 
-  alert("Login successful!");
+  toast.success("Login successful");
   navigate("/dashboard");
 
 } catch (error) {
 
   console.error(error);
 
-  alert("Invalid email or password!");
+  toast.error("Invalid email or password");
 }
   };
 

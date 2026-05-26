@@ -35,4 +35,24 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>>
+    handleUserAlreadyExistsException(
+            UserAlreadyExistsException ex
+    ) {
+
+        Map<String, String> errorResponse =
+                new HashMap<>();
+
+        errorResponse.put(
+                "message",
+                ex.getMessage()
+        );
+
+        return new ResponseEntity<>(
+                errorResponse,
+                HttpStatus.BAD_REQUEST
+        );
+    }
 }
