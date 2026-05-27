@@ -28,6 +28,10 @@ function DashboardPage() {
 
   const formRef = useRef(null);
 
+  const [currentPage, setCurrentPage] = useState(0);
+
+const [totalPages, setTotalPages] = useState(0);
+
   const handleLogout = () => {
 
     localStorage.removeItem("token");
@@ -36,19 +40,22 @@ function DashboardPage() {
     navigate("/");
   };
 
-  const fetchNotes = async () => {
+  const fetchNotes = async (page = 0) => {
 
     try {
 
-      const response = await getAllNotes();
+      const response = await getAllNotes(page);
 
       console.log(response);
 
       const sortedNotes = response.content.sort(
-        (a, b) => b.pinned - a.pinned
-      );
+    (a, b) => b.pinned - a.pinned
+    );
 
-      setNotes(sortedNotes);
+setNotes(sortedNotes);
+setCurrentPage(page);
+
+setTotalPages(response.totalPages);
 
     } catch (error) {
 
@@ -353,6 +360,29 @@ function DashboardPage() {
         </div>
 
       )}
+      <div className="flex justify-center items-center gap-4 mt-8">
+
+  <button
+    onClick={() => fetchNotes(currentPage - 1)}
+    disabled={currentPage === 0}
+    className="bg-gray-300 px-4 py-2 rounded-lg disabled:opacity-50"
+  >
+    Previous
+  </button>
+
+  <p className="font-semibold">
+    Page {currentPage + 1} of {totalPages}
+  </p>
+
+  <button
+    onClick={() => fetchNotes(currentPage + 1)}
+    disabled={currentPage === totalPages - 1}
+    className="bg-gray-300 px-4 py-2 rounded-lg disabled:opacity-50"
+  >
+    Next
+  </button>
+
+</div>
 
     </div>
   );

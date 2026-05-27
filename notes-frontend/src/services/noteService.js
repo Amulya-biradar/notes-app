@@ -1,9 +1,9 @@
 import axiosInstance from "../api/axiosInstance";
 
-export const getAllNotes = async () => {
+export const getAllNotes = async (page = 0) => {
 
   const response = await axiosInstance.get(
-    "/notes"
+    `/notes?pageNo=${page}&pageSize=5`
   );
 
   return response.data;
